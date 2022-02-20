@@ -171,6 +171,7 @@
 
 // If the task ends, there is no more data coming through the file handle even when the notification is
 // sent, or the process object is released, then this method is called.
+// FIXME: Resolve -[NSConcreteFileHandle availableData]: unknown error, when Tunnel is off
 - (void) stopProcess
 {
 /*    // we tell the controller that we finished, via the callback, and then blow away our connection

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 #
 #	usbmux.py - usbmux client library for Python
@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-import socket, struct, select, sys
+import json, socket, struct, select, sys
 
 try:
 	import plistlib
@@ -44,7 +44,7 @@ class SafeStreamSocket:
 				raise MuxError("socket connection broken")
 			totalsent = totalsent + sent
 	def recv(self, size):
-		msg = ''
+		msg = b''
 		while len(msg) < size:
 			chunk = self.sock.recv(size-len(msg))
 			if chunk == '':
@@ -74,9 +74,9 @@ class BinaryProtocol(object):
 
 	def _pack(self, req, payload):
 		if req == self.TYPE_CONNECT:
-			return struct.pack("IH", payload['DeviceID'], payload['PortNumber']) + "\x00\x00"
+			return struct.pack("IH", payload['DeviceID'], payload['PortNumber']) + b"\x00\x00"
 		elif req == self.TYPE_LISTEN:
-			return ""
+			return b''
 		else:
 			raise ValueError("Invalid outgoing request type %d"%req)
 	
@@ -93,7 +93,7 @@ class BinaryProtocol(object):
 		else:
 			raise MuxError("Invalid incoming request type %d"%req)
 
-	def sendpacket(self, req, tag, payload={}):
+	def sendpacket(self, req, tag, payload=b''):
 		payload = self._pack(req, payload)
 		if self.connected:
 			raise MuxError("Mux is connected, cannot issue control packets")
@@ -137,12 +137,12 @@ class PlistProtocol(BinaryProtocol):
 			req = [self.TYPE_CONNECT, self.TYPE_LISTEN][req-2]
 		payload['MessageType'] = req
 		payload['ProgName'] = 'tcprelay'
-		BinaryProtocol.sendpacket(self, self.TYPE_PLIST, tag, plistlib.writePlistToString(payload))
+		BinaryProtocol.sendpacket(self, self.TYPE_PLIST, tag, plistlib.dumps(payload))
 	def getpacket(self):
 		resp, tag, payload = BinaryProtocol.getpacket(self)
 		if resp != self.TYPE_PLIST:
 			raise MuxError("Received non-plist type %d"%resp)
-		payload = plistlib.readPlistFromString(payload)
+		payload = plistlib.loads(payload)
 		return payload['MessageType'], tag, payload
 
 class MuxConnection(object):
@@ -236,11 +236,11 @@ class USBMux(object):
 
 if __name__ == "__main__":
 	mux = USBMux()
-	print "Waiting for devices..."
+	print("Waiting for devices...")
 	if not mux.devices:
 		mux.process(0.1)
 	while True:
-		print "Devices:"
+		print("Devices:")
 		for dev in mux.devices:
-			print dev
+			print(dev)
 		mux.process()

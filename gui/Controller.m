@@ -376,13 +376,12 @@ void mobileDeviceNotification(struct am_device_notification_callback_info* info)
 	[_tunnelTask release];
 	NSArray* args = nil;
 	NSString* tcprelayPath = [[NSBundle mainBundle] pathForResource:@"tcprelay" ofType:@"py"];
-	NSString* pythonPath = @"/usr/bin/python";
 	NSString* tcprelayArgs = [NSString stringWithFormat:@"%d:%d", [_devicePort intValue], [_localPort intValue]];
 	
 	if (_currentDevice) {
-		args = [NSArray arrayWithObjects:pythonPath, tcprelayPath, @"-t", tcprelayArgs, nil];
+		args = [NSArray arrayWithObjects:tcprelayPath, @"-t", tcprelayArgs, nil];
 	} else {
-		args = [NSArray arrayWithObjects:pythonPath, tcprelayPath, @"-t", tcprelayArgs, nil];
+		args = [NSArray arrayWithObjects:tcprelayPath, @"-t", tcprelayArgs, nil];
 	}
 	//NSLog(@"args: %@", [args description]);
 	_tunnelTask = [[TaskWrapper alloc] initWithController:self arguments:args];
